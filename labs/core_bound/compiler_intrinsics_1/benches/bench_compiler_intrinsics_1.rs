@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 
-use compiler_intrinsics_1::{image_smoothing, init, OutputVector, RADIUS};
+use compiler_intrinsics_1::{image_smoothing, image_smoothing_orig, init, OutputVector, RADIUS};
 
 fn bench1(c: &mut Criterion) {
     let in_a = init();

@@ -1,7 +1,7 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::fs::read_to_string;
 
-use compiler_intrinsics_2::solution;
+use compiler_intrinsics_2::{solution, solution_opt, solution_simd, solution_simd_1};
 
 fn bench1(c: &mut Criterion) {
     let inputs = vec![
@@ -15,8 +15,8 @@ fn bench1(c: &mut Criterion) {
         let input_content = read_to_string(input).unwrap();
         input_contents.push(input_content);
     }
-
-    c.bench_function("lab", |b| {
+    let mut group = c.benchmark_group("std");
+    group.bench_function("lab", |b| {
         b.iter(|| {
             for input_content in &input_contents {
                 let output = solution(&input_content);
@@ -24,6 +24,31 @@ fn bench1(c: &mut Criterion) {
             }
         });
     });
+    group.bench_function("swar", |b| {
+        b.iter(|| {
+            for input_content in &input_contents {
+                let output = solution_opt(&input_content);
+                std::hint::black_box(output);
+            }
+        });
+    });
+    group.bench_function("simd", |b| {
+        b.iter(|| {
+            for input_content in &input_contents {
+                let output = solution_simd(&input_content);
+                std::hint::black_box(output);
+            }
+        });
+    });
+    group.bench_function("simd_evo", |b| {
+        b.iter(|| {
+            for input_content in &input_contents {
+                let output = solution_simd_1(&input_content);
+                std::hint::black_box(output);
+            }
+        });
+    });
+    group.finish();
 }
 
 criterion_group!(benches, bench1);

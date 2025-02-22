@@ -35,6 +35,7 @@ fn matricies_equal(m1: &MatrixOfDoubles, m2: &MatrixOfDoubles) -> bool {
     for i in 0..size {
         for j in 0..size {
             if m1[i][j] != m2[i][j] {
+                println!("fail at {},{}",i,j);
                 return false;
             }
         }

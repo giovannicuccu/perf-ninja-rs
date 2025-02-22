@@ -1,4 +1,4 @@
-use crate::{get_random_list, get_sum_of_digits, solution, Arena, List};
+use crate::{get_random_list, get_sum_of_digits, solution, Arena, List, solution_opt};
 
 #[test]
 fn validate() {
@@ -7,7 +7,7 @@ fn validate() {
     let arena2 = Arena::new();
     let l2 = get_random_list(&arena2);
     let original_result = unsafe { original_solution(l1, l2) };
-    let result = unsafe { solution(l1, l2) };
+    let result = unsafe { solution_opt(l1, l2) };
 
     assert_eq!(original_result, result);
 }

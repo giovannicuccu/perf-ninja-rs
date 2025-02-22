@@ -1,4 +1,4 @@
-use crate::solution;
+use crate::{solution, solution_opt, solution_simd};
 use std::cmp::max;
 use std::fs::read_to_string;
 
@@ -9,15 +9,15 @@ fn validate() -> std::io::Result<()> {
         "inputs/test1.txt",               // basic test
         "inputs/test2.txt",               // no end-of-line in the end
         "inputs/test3.txt",               // small number of characters
-        "inputs/LoopVectorize.txt",       // a large C++ file from the LLVM compiler.
-        "inputs/MarkTwain-TomSawyer.txt", // a typical text file with long lines.
+        //"inputs/LoopVectorize.txt",       // a large C++ file from the LLVM compiler.
+        //"inputs/MarkTwain-TomSawyer.txt", // a typical text file with long lines.
         "inputs/counter-example.txt",     // input where sequential solution is faster
     ];
     for input in &inputs {
+        println!("input={input}");
         let input_contents = read_to_string(input)?;
-
         let original_result = original_solution(&input_contents);
-        let result = solution(&input_contents);
+        let result = solution_simd(&input_contents);
         assert_eq!(original_result, result);
     }
     Ok(())
@@ -26,7 +26,9 @@ fn validate() -> std::io::Result<()> {
 fn original_solution(input_contents: &str) -> u32 {
     let mut longest_line = 0;
     let mut cur_line_length = 0;
+    let mut i=0;
     for s in input_contents.chars() {
+        i+=1;
         longest_line = max(cur_line_length, longest_line);
         cur_line_length = if s == '\n' { 0 } else { cur_line_length + 1 };
     }

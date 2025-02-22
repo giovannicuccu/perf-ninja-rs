@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 
-use dep_chains_1::{get_random_list, solution, Arena};
+use dep_chains_1::{get_random_list, solution, Arena, solution_opt};
 
 fn bench1(c: &mut Criterion) {
     let arena1 = Arena::new();
@@ -9,7 +9,7 @@ fn bench1(c: &mut Criterion) {
     let l2 = get_random_list(&arena2);
     c.bench_function("lab", |b| {
         b.iter(|| {
-            let output = unsafe { solution(l1, l2) };
+            let output = unsafe { solution_opt(l1, l2) };
             std::hint::black_box(output);
         });
     });

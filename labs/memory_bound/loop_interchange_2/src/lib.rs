@@ -40,18 +40,7 @@ fn filter_vertically(
             output[r * width + c] = value as u8;
         }
 
-        // Middle part of computations with full kernel
-        for r in radius..(height - radius) {
-            // Accumulation
-            let mut dot = 0;
-            for i in 0..(radius + 1 + radius) {
-                dot += input[(r - radius + i) * width + c] as i32 * kernel[i];
-            }
 
-            // Fast shift instead of division
-            let value: i32 = (dot + rounding) >> shift;
-            output[r * width + c] = value as u8;
-        }
 
         // Bottom part of line, partial kernel
         for r in std::cmp::max(radius, height - radius)..height {
@@ -68,6 +57,21 @@ fn filter_vertically(
 
             // Normalization
             let value = dot as f32 / sum as f32 + 0.5;
+            output[r * width + c] = value as u8;
+        }
+    }
+
+
+    // Middle part of computations with full kernel
+    for r in radius..(height - radius) {
+        let mut dots=vec![0;width];
+        for i in 0..(radius + 1 + radius) {
+            for c in 0..width {
+                dots[c] += input[(r - radius + i) * width + c] as i32 * kernel[i];
+            }
+        }
+        for c in 0..width {
+            let value: i32 = (dots[c] + rounding) >> shift;
             output[r * width + c] = value as u8;
         }
     }

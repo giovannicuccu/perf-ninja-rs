@@ -58,3 +58,37 @@ pub unsafe fn solution(mut l1: *const List, mut l2: *const List) -> u32 {
 
     ret_val
 }
+
+pub unsafe fn solution_opt(mut l1: *const List, mut l2: *const List) -> u32 {
+    let mut ret_val = 0u32;
+
+    let head2 = l2;
+    // O(N^2) algorithm:
+    let mut elems=vec![];
+    while !l1.is_null() {
+        //let v = (*l1).value;
+        l2 = head2;
+        let mut i=0;
+        while !l1.is_null() && i<64 {
+            let v = (*l1).value;
+            elems.push(v);
+            l1 = (*l1).next;
+            i+=1;
+        }
+        let mut found=0;
+        while !l2.is_null() {
+            if elems.contains(&((*l2).value)) {
+                ret_val += get_sum_of_digits((*l2).value);
+                found+=1;
+                if found==elems.len() {
+                    break;
+                }
+            }
+            l2 = (*l2).next;
+        }
+        elems.clear();
+        //l1 = (*l1).next;
+    }
+
+    ret_val
+}

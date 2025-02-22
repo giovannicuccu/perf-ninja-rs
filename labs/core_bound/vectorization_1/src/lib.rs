@@ -9,8 +9,86 @@ pub const SEQUENCE_COUNT: usize = 16; // The number of sequences to generate for
 pub type Sequence = [u8; SEQUENCE_SIZE];
 pub type AlignResult = [i16; SEQUENCE_COUNT];
 
+
+pub type SequenceTr = [u8; SEQUENCE_COUNT];
 // The alignment algorithm which computes the alignment of the given sequence
 // pairs.
+
+pub fn compute_alignment_opt(sequences1: &[Sequence], sequences2: &[Sequence]) -> AlignResult {
+    let mut result: AlignResult = [0; SEQUENCE_COUNT];
+    let sequences1_tr=transpose_sequences(sequences1);
+    let sequences2_tr=transpose_sequences(sequences2);
+    type ScoreTr = [i16;SEQUENCE_COUNT];
+    type ColumnTr = [ScoreTr; SEQUENCE_SIZE + 1];
+
+    let gap_open: ScoreTr = [-11; SEQUENCE_COUNT];
+    let gap_extension: ScoreTr = [-1; SEQUENCE_COUNT];
+    let match_score: ScoreTr = [6; SEQUENCE_COUNT]; // previously 'match'
+    let mismatch: ScoreTr = [-4; SEQUENCE_COUNT];
+
+    let mut score_column: ColumnTr = [[0;SEQUENCE_COUNT]; SEQUENCE_SIZE + 1];
+    let mut horizontal_gap_column: ColumnTr = [[0;SEQUENCE_COUNT]; SEQUENCE_SIZE + 1];
+    let mut last_vertical_gap: ScoreTr;
+
+    horizontal_gap_column[0] = gap_open;
+    last_vertical_gap = gap_open;
+
+    for i in 1..score_column.len() {
+        for k in 0..SEQUENCE_COUNT {
+            score_column[i][k] = last_vertical_gap[k];
+            horizontal_gap_column[i][k] = last_vertical_gap[k] + gap_open[k];
+            last_vertical_gap[k] += gap_extension[k];
+        }
+    }
+
+    for col in 1..=sequences2_tr.len()  {
+        let mut last_diagonal_score= score_column[0];
+        for k in 0..SEQUENCE_COUNT {
+            score_column[0][k] = horizontal_gap_column[0][k];
+            last_vertical_gap[k] = horizontal_gap_column[0][k] + gap_open[k];
+            horizontal_gap_column[0][k] += gap_extension[k];
+        }
+        for row in 1..=sequences1_tr.len() {
+            let mut best_cell_score=last_diagonal_score;
+            for k in 0 ..SEQUENCE_COUNT {
+                best_cell_score[k] += if sequences1_tr[row - 1][k] == sequences2_tr[col-1][k] {
+                    match_score[k]
+                } else {
+                    mismatch[k]
+                };
+            }
+            for k in 0 ..SEQUENCE_COUNT {
+                best_cell_score[k] = max(best_cell_score[k], last_vertical_gap[k]);
+                best_cell_score[k] = max(best_cell_score[k], horizontal_gap_column[row][k]);
+                // Cache next diagonal value and store optimum in score_column.
+                last_diagonal_score[k] = score_column[row][k];
+                score_column[row][k] = best_cell_score[k];
+                // Compute the next values for vertical and horizontal gap.
+                best_cell_score[k] += gap_open[k];
+                last_vertical_gap [k]+= gap_extension[k];
+                horizontal_gap_column[row][k] += gap_extension[k];
+                // Store optimum between gap open and gap extension.
+                last_vertical_gap[k] = max(last_vertical_gap[k], best_cell_score[k]);
+                horizontal_gap_column[row][k] = max(horizontal_gap_column[row][k], best_cell_score[k]);
+            }
+        }
+    }
+    for k in 0..SEQUENCE_COUNT {
+        result[k] = score_column[SEQUENCE_SIZE][k];
+    }
+    result
+}
+
+fn transpose_sequences(sequences: &[Sequence]) -> Vec<SequenceTr>{
+    let mut sequence_tr:Vec<SequenceTr>=vec![[0u8; SEQUENCE_COUNT];SEQUENCE_SIZE];
+    for i in 0..SEQUENCE_COUNT {
+        for j in 0..SEQUENCE_SIZE {
+            sequence_tr[j][i]=sequences[i][j];
+        }
+    }
+    sequence_tr
+
+}
 pub fn compute_alignment(sequences1: &[Sequence], sequences2: &[Sequence]) -> AlignResult {
     let mut result: AlignResult = [0; SEQUENCE_COUNT];
 

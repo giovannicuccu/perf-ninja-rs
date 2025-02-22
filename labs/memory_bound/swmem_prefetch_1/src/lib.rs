@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod tests;
 
+#[cfg(target_arch = "x86_64")]
+use std::arch::x86_64::{_mm_prefetch, _MM_HINT_T0};
 pub const HASH_MAP_SIZE: usize = 32 * 1024 * 1024 - 5;
 const NUMBER_OF_LOOKUPS: usize = 1024 * 1024;
 
@@ -31,6 +33,13 @@ impl HashMapT {
         let bucket = val as usize % self.n_buckets;
         self.m_vector[bucket] != UNUSED
     }
+
+    pub fn prefetch (&self, val: i32) {
+        let bucket = val as usize % self.n_buckets;
+        unsafe {
+            _mm_prefetch::<_MM_HINT_T0>(self.m_vector.as_ptr().add(bucket) as *const i8);
+        }
+    }
 }
 
 fn get_sum_of_digits(mut n: i32) -> i32 {
@@ -42,10 +51,22 @@ fn get_sum_of_digits(mut n: i32) -> i32 {
     sum
 }
 
+const PREFETCH_SIZE: i32 = 64;
 pub fn solution(hash_map: &HashMapT, lookups: &[i32]) -> i32 {
     let mut result = 0;
 
-    for &val in lookups {
+    for i in 0 .. (lookups.len()-PREFETCH_SIZE as usize) {
+    //for &val in lookups {
+        let val=lookups[i];
+        if hash_map.find(val) {
+            result += get_sum_of_digits(val);
+            hash_map.prefetch(val+PREFETCH_SIZE);
+        }
+    }
+
+    for i in (lookups.len()-PREFETCH_SIZE as usize) .. lookups.len() {
+        //for &val in lookups {
+        let val=lookups[i];
         if hash_map.find(val) {
             result += get_sum_of_digits(val);
         }

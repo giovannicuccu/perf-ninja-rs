@@ -57,3 +57,28 @@ fn reference_solution(input: &InputVector, radius: usize, output: &mut OutputVec
         pos += 1;
     }
 }
+
+#[test]
+fn test_shift() {
+    let mut arr1 = [1, 2, 3, 4, 5];
+    {
+        let len = arr1.len();
+        arr1.copy_within(..len-1, 1);
+        arr1[0] = 0;
+    }
+    println!("Using copy_within: {:?}", arr1);  // [0, 1, 2, 3, 4]
+
+    // Example 2: Using rotate_right
+    let mut arr2 = [1, 2, 3, 4, 5];
+    arr2.rotate_right(1);
+    arr2[0] = 0;
+    println!("Using rotate_right: {:?}", arr2);  // [0, 1, 2, 3, 4]
+
+    // Example 3: Manual implementation
+    let mut arr3 = [1, 2, 3, 4, 5];
+    for i in (1..arr3.len()).rev() {
+        arr3[i] = arr3[i-1];
+    }
+    arr3[0] = 0;
+    println!("Manual implementation: {:?}", arr3);
+}

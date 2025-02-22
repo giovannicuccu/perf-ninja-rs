@@ -22,3 +22,26 @@ fn validate() {
 
     assert_eq!(original_result, result);
 }
+
+#[test]
+fn should_handle_overflow() {
+    let mut blob: Blob = [0; N];
+    blob[0]=u16::MAX;
+    blob[1]=u16::MAX;
+    blob[2]=2;
+    blob[2]=2;
+
+    let result = original_checksum(&blob);
+    assert_eq!(4,result);
+}
+
+#[test]
+fn should_handle_overflow_wrapping() {
+    let mut acc = Wrapping(0);
+    acc+=u16::MAX;
+    acc+=u16::MAX;
+    acc+=1;
+    acc+=1;
+    assert_eq!(4_u16,acc.0);
+
+}
